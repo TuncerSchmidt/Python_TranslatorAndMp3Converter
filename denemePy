@@ -1,0 +1,130 @@
+
+import urllib.request
+
+import unicodedata
+import sys
+from googletrans import Translator
+import codecs
+from slugify import slugify
+from moviepy.editor import concatenate_audioclips, AudioFileClip
+
+import time
+
+
+def textToSpeechEn(TEXT):
+    import pip._vendor.requests, time
+    data = {"engine":"Google","data":{"text":TEXT,"voice":"en-US"}}
+    r = pip._vendor.requests.post('https://api.soundoftext.com/sounds',json=data)
+    ID = r.json()['id']
+    #time.sleep(1)
+    r = pip._vendor.requests.get('https://api.soundoftext.com/sounds/{}'.format(ID))
+    print('Location to your MP3 file: ',r.json()['location'])
+    return r.json()['location']
+def textToSpeechDe(TEXT):
+    import pip._vendor.requests, time
+    data = {"engine":"Google","data":{"text":TEXT,"voice":"en-US"}}
+    r = pip._vendor.requests.post('https://api.soundoftext.com/sounds',json=data)
+    ID = r.json()['id']
+    #time.sleep(1)
+    r = pip._vendor.requests.get('https://api.soundoftext.com/sounds/{}'.format(ID))
+    print('Location to your MP3 file: ',r.json()['location'])
+    return r.json()['location']
+def textToSpeechGr(TEXT):
+    import pip._vendor.requests, time
+    data = {"engine":"Google","data":{"text":TEXT,"voice":"de-DE"}}
+    r = pip._vendor.requests.post('https://api.soundoftext.com/sounds',json=data)
+    ID = r.json()['id']
+    #time.sleep(1)
+    r = pip._vendor.requests.get('https://api.soundoftext.com/sounds/{}'.format(ID))
+    print('Location to your MP3 file: ',r.json()['location'])
+    return r.json()['location']
+def textToSpeechTr(TEXT):
+    import pip._vendor.requests, time
+    data = {"engine":"Google","data":{"text":TEXT,"voice":"tr-TR"}}
+    r = pip._vendor.requests.post('https://api.soundoftext.com/sounds',json=data)
+    ID = r.json()['id']
+    #time.sleep(1)
+    r = pip._vendor.requests.get('https://api.soundoftext.com/sounds/{}'.format(ID))
+    print('Location to your MP3 file: ',r.json()['location'])
+    return r.json()['location']
+
+seperator = "\n\r\n\r\n\r---------------------\n\r\n\r"
+subtitle = '1\n\r\n\r00:00:00,000 --> 00:09:00,000\n\r\n\r\n\r'
+save_path = 'output_EN\\'
+
+
+
+
+try:
+    with codecs.open('input_EN.txt', 'r', encoding='utf-8', errors='ignore' ) as f:
+        lines = f.readlines()
+        #print(lines, "biradaki sayi")
+        
+    textDe = str()
+    textTr = str()
+    textGr = str()
+    i = 0
+    for line in lines:
+        i = i + 1
+        while True:
+            try:
+                #translate
+                
+                if i % 3 == 1:
+                    textDe = line #raw_input("Enter the sentence which shall be translated from german: ")
+                if i % 3 == 2:
+                    textTr = line
+                    if textTr == "\n":
+                        #print("Dogru burasi")
+                        textTr =Translator().translate(text=textDe, dest='tr').text
+                    #print("buradayim translation", textTr)
+                if i % 3 == 0:
+                    textGr = line
+                    if textGr == "\n":
+                        textGr =Translator().translate(text=textDe, dest='de').text
+                    testfile=urllib.request.URLopener()
+                    
+                    
+                    testfile.retrieve(textToSpeechDe(textDe), save_path+slugify((textDe)).replace('-',' ')+".mp3")
+                    testfile.retrieve(textToSpeechGr(textGr), save_path+slugify((textGr)).replace('-',' ')+".mp3")
+                    testfile.retrieve(textToSpeechTr(textTr), save_path+slugify((textTr)).replace('-',' ')+".mp3")
+                    
+                    print("buradayim", save_path+slugify((textDe)).replace('-',' ')+".mp3") 
+                    audio1 = AudioFileClip(save_path+slugify((textDe)).replace('-',' ')+".mp3")
+                    audio2 = AudioFileClip(save_path+slugify((textGr)).replace('-',' ')+".mp3")
+                    audio3 = AudioFileClip(save_path+slugify((textTr)).replace('-',' ')+".mp3")
+                    final_audio = concatenate_audioclips([audio1, audio2, audio3])
+                    final_audio.write_audiofile("burada" + save_path+slugify((textDe)).replace('-',' ')+".mp3")
+
+                    filenameDe = (subtitle+textDe + "\n" + textGr + "\n" + textTr)
+            
+            #print("buradayim")
+                    text_file = codecs.open("burada"+save_path+slugify((textDe)).replace('-',' ')+".txt", "w","utf-8-sig")
+                    text_file.write(filenameDe)
+            
+                    text_file.close()
+                time.sleep(1)
+                
+                
+            except Exception as e:
+                print(e)
+                #time.sleep(2) #wait a bit before making another trial
+                print("Bad network? Let me try again.")
+                continue
+            #write to file de
+            
+            break
+        if i % 3 ==0:
+            textDe = str()
+            textTr = str()
+            textGr = str()
+
+except:
+    print("TTS v4")
+    print("Something went wrong...")
+    input()
+
+
+
+
+
